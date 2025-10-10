@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Free online tool to remove unwanted objects from images. Erase objects, people, or text from photos with our easy-to-use object eraser tool.">
-    <meta name="keywords" content="object eraser, remove objects from image, photo editor, image editing, erase objects">
+    <meta name="description" content="Advanced object eraser tool - Remove unwanted objects from images with precision. Smooth erasing experience with adjustable brush settings.">
+    <meta name="keywords" content="object eraser, remove objects from image, photo editor, image editing, erase objects, photo retouch">
     <meta name="author" content="ToolKit Pro">
-    <title>Object Eraser Tool - Remove Unwanted Objects from Images | ToolKit Pro</title>
+    <title>Advanced Object Eraser - Remove Unwanted Objects from Images | ToolKit Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -17,6 +17,7 @@
             --dark: #212529;
             --gray: #6c757d;
             --success: #4cc9f0;
+            --warning: #ff9e00;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
         }
@@ -208,6 +209,14 @@
             background-color: #5a6268;
         }
 
+        .btn-warning {
+            background-color: var(--warning);
+        }
+
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+
         .controls {
             margin-top: 1.5rem;
         }
@@ -280,6 +289,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: none;
         }
 
         #previewImage {
@@ -298,13 +308,23 @@
             position: relative;
             width: 100%;
             height: 100%;
+            overflow: hidden;
         }
 
         #imageCanvas {
             max-width: 100%;
             max-height: 100%;
             display: none;
-            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .brush-preview {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            display: none;
+            z-index: 10;
         }
 
         .action-buttons {
@@ -339,6 +359,10 @@
             border: 1px dashed #ddd;
             padding: 2rem;
             color: var(--gray);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .file-info {
@@ -378,6 +402,34 @@
             padding: 1rem 2rem;
             border-radius: 10px;
             box-shadow: var(--shadow);
+        }
+
+        .tool-status {
+            background-color: var(--light);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-erasing {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--accent);
+        }
+
+        .status-ready {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .tool-tips {
+            background-color: #fff9db;
+            border-left: 4px solid var(--warning);
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
         }
 
         footer {
@@ -466,7 +518,7 @@
             <div class="header-content">
                 <div class="logo">
                     <i class="fas fa-eraser"></i>
-                    <span>Object Eraser</span>
+                    <span>Advanced Object Eraser</span>
                 </div>
                 <nav>
                     <ul>
@@ -489,17 +541,7 @@
             <div class="ad-label">Advertisement</div>
             <div class="ad-placeholder" id="adTop">
                 <!-- Google AdSense Ad Unit will be inserted here -->
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-                <!-- Object Eraser Top Ad -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                    data-ad-slot="XXXXXXXXXX"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
+                Ad Space - Top Banner
             </div>
         </div>
     </div>
@@ -519,20 +561,24 @@
                 
                 <div class="file-info" id="fileInfo"></div>
                 
+                <div class="tool-status status-ready" id="toolStatus">
+                    <i class="fas fa-check-circle"></i> Ready to erase objects
+                </div>
+                
                 <div class="controls">
                     <div class="control-group">
                         <label class="control-label" for="eraserSize">Eraser Size</label>
                         <div class="slider-container">
-                            <input type="range" min="5" max="100" value="20" class="slider" id="eraserSize">
-                            <span class="slider-value" id="eraserValue">20px</span>
+                            <input type="range" min="5" max="100" value="25" class="slider" id="eraserSize">
+                            <span class="slider-value" id="eraserValue">25px</span>
                         </div>
                     </div>
                     
                     <div class="control-group">
                         <label class="control-label" for="eraserHardness">Eraser Hardness</label>
                         <div class="slider-container">
-                            <input type="range" min="0" max="100" value="100" class="slider" id="eraserHardness">
-                            <span class="slider-value" id="hardnessValue">100%</span>
+                            <input type="range" min="0" max="100" value="80" class="slider" id="eraserHardness">
+                            <span class="slider-value" id="hardnessValue">80%</span>
                         </div>
                     </div>
                     
@@ -543,25 +589,37 @@
                             <span class="slider-value" id="opacityValue">100%</span>
                         </div>
                     </div>
+                    
+                    <div class="control-group">
+                        <label class="control-label" for="smoothing">Smoothing</label>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="100" value="30" class="slider" id="smoothing">
+                            <span class="slider-value" id="smoothingValue">30%</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="eraser-controls">
-                    <h3 class="section-title">Object Eraser</h3>
+                    <h3 class="section-title">Advanced Eraser</h3>
                     <div class="eraser-info">
-                        <p><strong>How to use:</strong> Upload an image, then click and drag over the areas you want to erase. Adjust the eraser size and properties for precise control.</p>
+                        <p><strong>How to use:</strong> Upload an image, then click and drag over the areas you want to erase. The eraser follows your cursor/finger precisely from start to finish.</p>
                     </div>
                     
                     <div class="action-buttons">
                         <button class="btn btn-success" id="eraserBtn">Start Erasing</button>
+                        <button class="btn btn-warning" id="undoBtn" disabled>Undo</button>
                         <button class="btn btn-secondary" id="resetBtn">Reset Image</button>
-                        <button class="btn btn-danger" id="clearBtn">Clear All</button>
+                    </div>
+                    
+                    <div class="tool-tips">
+                        <i class="fas fa-lightbulb"></i> <strong>Pro Tip:</strong> Use a smaller brush for detailed work and a larger brush for big areas.
                     </div>
                 </div>
             </section>
             
             <section class="preview-section">
                 <h2 class="section-title">Preview & Download</h2>
-                <div class="preview-container">
+                <div class="preview-container" id="previewContainer">
                     <div class="placeholder-text" id="previewPlaceholder">
                         <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <p>Your image will appear here after upload</p>
@@ -569,6 +627,7 @@
                     <img id="previewImage" alt="Processed image preview">
                     <div class="canvas-container">
                         <canvas id="imageCanvas"></canvas>
+                        <div class="brush-preview" id="brushPreview"></div>
                     </div>
                     <div class="loading hidden" id="loadingIndicator">
                         <i class="fas fa-spinner fa-spin"></i> Processing...
@@ -576,8 +635,15 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-success" id="downloadBtn" disabled>Download Edited Image</button>
-                    <button class="btn btn-secondary" id="newImageBtn">New Image</button>
+                    <button class="btn btn-success" id="downloadBtn" disabled>
+                        <i class="fas fa-download"></i> Download Edited Image
+                    </button>
+                    <button class="btn btn-danger" id="clearBtn">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                    <button class="btn btn-secondary" id="newImageBtn">
+                        <i class="fas fa-plus"></i> New Image
+                    </button>
                 </div>
                 
                 <div class="compression-info hidden" id="compressionInfo">
@@ -600,17 +666,7 @@
             <div class="ad-label">Advertisement</div>
             <div class="ad-placeholder" id="adBottom">
                 <!-- Google AdSense Ad Unit will be inserted here -->
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-                <!-- Object Eraser Bottom Ad -->
-                <ins class="adsbygoogle"
-                    style="display:block"
-                    data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                    data-ad-slot="XXXXXXXXXX"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
+                Ad Space - Bottom Banner
             </div>
         </div>
     </div>
@@ -619,8 +675,8 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Object Eraser Tool</h3>
-                    <p>Remove unwanted objects, people, or text from your images with our easy-to-use online tool. No registration required.</p>
+                    <h3>Advanced Object Eraser</h3>
+                    <p>Remove unwanted objects, people, or text from your images with our precision eraser tool. Smooth drawing experience with advanced controls.</p>
                 </div>
                 
                 <div class="footer-section">
@@ -637,10 +693,10 @@
                 <div class="footer-section">
                     <h3>Features</h3>
                     <ul>
-                        <li>Easy Object Removal</li>
-                        <li>Adjustable Eraser Size</li>
-                        <li>No Installation Required</li>
-                        <li>Privacy Focused</li>
+                        <li>Precision Object Removal</li>
+                        <li>Adjustable Brush Settings</li>
+                        <li>Smooth Drawing Experience</li>
+                        <li>Undo/Redo Functionality</li>
                         <li>Completely Free</li>
                     </ul>
                 </div>
@@ -660,7 +716,10 @@
         const previewImage = document.getElementById('previewImage');
         const imageCanvas = document.getElementById('imageCanvas');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const previewContainer = document.getElementById('previewContainer');
+        const brushPreview = document.getElementById('brushPreview');
         const eraserBtn = document.getElementById('eraserBtn');
+        const undoBtn = document.getElementById('undoBtn');
         const resetBtn = document.getElementById('resetBtn');
         const clearBtn = document.getElementById('clearBtn');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -671,11 +730,14 @@
         const hardnessValue = document.getElementById('hardnessValue');
         const eraserOpacity = document.getElementById('eraserOpacity');
         const opacityValue = document.getElementById('opacityValue');
+        const smoothing = document.getElementById('smoothing');
+        const smoothingValue = document.getElementById('smoothingValue');
         const fileInfo = document.getElementById('fileInfo');
         const compressionInfo = document.getElementById('compressionInfo');
         const originalSize = document.getElementById('originalSize');
         const editedSize = document.getElementById('editedSize');
         const loadingIndicator = document.getElementById('loadingIndicator');
+        const toolStatus = document.getElementById('toolStatus');
 
         // Global variables
         let originalImage = null;
@@ -683,6 +745,11 @@
         let ctx = imageCanvas.getContext('2d');
         let originalFileSize = 0;
         let editedFileSize = 0;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let canvasHistory = [];
+        let maxHistorySize = 10;
 
         // Event Listeners
         browseBtn.addEventListener('click', () => fileInput.click());
@@ -711,6 +778,7 @@
         
         eraserSize.addEventListener('input', () => {
             eraserValue.textContent = `${eraserSize.value}px`;
+            updateBrushPreview();
         });
         
         eraserHardness.addEventListener('input', () => {
@@ -721,11 +789,32 @@
             opacityValue.textContent = `${eraserOpacity.value}%`;
         });
         
+        smoothing.addEventListener('input', () => {
+            smoothingValue.textContent = `${smoothing.value}%`;
+        });
+        
         eraserBtn.addEventListener('click', toggleEraser);
+        undoBtn.addEventListener('click', undoLastAction);
         resetBtn.addEventListener('click', resetCanvas);
         clearBtn.addEventListener('click', clearCanvas);
         downloadBtn.addEventListener('click', downloadImage);
         newImageBtn.addEventListener('click', resetTool);
+
+        // Canvas event listeners for drawing
+        imageCanvas.addEventListener('mousedown', startDrawing);
+        imageCanvas.addEventListener('mousemove', draw);
+        imageCanvas.addEventListener('mouseup', stopDrawing);
+        imageCanvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events for mobile devices
+        imageCanvas.addEventListener('touchstart', handleTouchStart);
+        imageCanvas.addEventListener('touchmove', handleTouchMove);
+        imageCanvas.addEventListener('touchend', stopDrawing);
+        
+        // Brush preview events
+        previewContainer.addEventListener('mousemove', updateBrushPreviewPosition);
+        previewContainer.addEventListener('mouseenter', showBrushPreview);
+        previewContainer.addEventListener('mouseleave', hideBrushPreview);
 
         // Functions
         function handleFileSelection() {
@@ -745,9 +834,25 @@
                 originalImage = new Image();
                 originalImage.onload = function() {
                     // Set up canvas
-                    imageCanvas.width = originalImage.width;
-                    imageCanvas.height = originalImage.height;
-                    ctx.drawImage(originalImage, 0, 0);
+                    const maxWidth = 800;
+                    const maxHeight = 600;
+                    
+                    let width = originalImage.width;
+                    let height = originalImage.height;
+                    
+                    // Scale down if image is too large
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    imageCanvas.width = width;
+                    imageCanvas.height = height;
+                    ctx.drawImage(originalImage, 0, 0, width, height);
+                    
+                    // Save initial state to history
+                    saveToHistory();
                     
                     // Show canvas and hide placeholder
                     imageCanvas.style.display = 'block';
@@ -756,6 +861,11 @@
                     // Reset info
                     compressionInfo.classList.add('hidden');
                     downloadBtn.disabled = true;
+                    undoBtn.disabled = true;
+                    
+                    // Update tool status
+                    toolStatus.textContent = 'Ready to erase objects';
+                    toolStatus.className = 'tool-status status-ready';
                 };
                 originalImage.src = e.target.result;
             };
@@ -776,120 +886,197 @@
                 eraserBtn.classList.add('btn-danger');
                 imageCanvas.style.cursor = 'crosshair';
                 
-                // Add event listeners for erasing
-                imageCanvas.addEventListener('mousedown', startErasing);
-                imageCanvas.addEventListener('touchstart', startErasingTouch);
+                // Update tool status
+                toolStatus.innerHTML = '<i class="fas fa-eraser"></i> Erasing mode active - Click and drag to erase objects';
+                toolStatus.className = 'tool-status status-erasing';
+                
+                // Show brush preview
+                showBrushPreview();
             } else {
                 eraserBtn.textContent = 'Start Erasing';
                 eraserBtn.classList.remove('btn-danger');
                 eraserBtn.classList.add('btn-success');
                 imageCanvas.style.cursor = 'default';
                 
-                // Remove event listeners
-                imageCanvas.removeEventListener('mousedown', startErasing);
-                imageCanvas.removeEventListener('touchstart', startErasingTouch);
-                document.removeEventListener('mousemove', erase);
-                document.removeEventListener('touchmove', eraseTouch);
-                document.removeEventListener('mouseup', stopErasing);
-                document.removeEventListener('touchend', stopErasing);
+                // Update tool status
+                toolStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ready to erase objects';
+                toolStatus.className = 'tool-status status-ready';
+                
+                // Hide brush preview
+                hideBrushPreview();
             }
         }
 
-        function startErasing(e) {
+        function startDrawing(e) {
             if (!isErasing) return;
             
-            document.addEventListener('mousemove', erase);
-            document.addEventListener('mouseup', stopErasing);
-            erase(e);
+            isDrawing = true;
+            const pos = getMousePos(e);
+            [lastX, lastY] = [pos.x, pos.y];
+            
+            // Draw initial point
+            drawAtPosition(lastX, lastY);
         }
 
-        function startErasingTouch(e) {
+        function draw(e) {
+            if (!isDrawing || !isErasing) return;
+            
+            e.preventDefault();
+            const pos = getMousePos(e);
+            const currentX = pos.x;
+            const currentY = pos.y;
+            
+            // Calculate distance between points for smooth drawing
+            const dist = Math.sqrt(Math.pow(currentX - lastX, 2) + Math.pow(currentY - lastY, 2));
+            const steps = Math.max(1, Math.floor(dist / 2));
+            
+            // Draw intermediate points for smooth line
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = lastX + (currentX - lastX) * t;
+                const y = lastY + (currentY - lastY) * t;
+                drawAtPosition(x, y);
+            }
+            
+            [lastX, lastY] = [currentX, currentY];
+        }
+
+        function drawAtPosition(x, y) {
+            const size = parseInt(eraserSize.value);
+            const hardness = parseInt(eraserHardness.value) / 100;
+            const opacity = parseInt(eraserOpacity.value) / 100;
+            
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.globalAlpha = opacity;
+            
+            // Create gradient for hardness effect
+            if (hardness < 1) {
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size/2);
+                gradient.addColorStop(0, `rgba(0, 0, 0, ${hardness})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x - size/2, y - size/2, size, size);
+            } else {
+                ctx.beginPath();
+                ctx.arc(x, y, size/2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Enable download and undo buttons after changes
+            downloadBtn.disabled = false;
+            undoBtn.disabled = false;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                // Save state to history when finishing a stroke
+                saveToHistory();
+            }
+        }
+
+        function handleTouchStart(e) {
             if (!isErasing) return;
             
             e.preventDefault();
-            document.addEventListener('touchmove', eraseTouch);
-            document.addEventListener('touchend', stopErasing);
-            eraseTouch(e);
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            imageCanvas.dispatchEvent(mouseEvent);
         }
 
-        function erase(e) {
+        function handleTouchMove(e) {
             if (!isErasing) return;
             
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            imageCanvas.dispatchEvent(mouseEvent);
+        }
+
+        function getMousePos(e) {
             const rect = imageCanvas.getBoundingClientRect();
+            const scaleX = imageCanvas.width / rect.width;
+            const scaleY = imageCanvas.height / rect.height;
+            
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function updateBrushPreview() {
+            if (!isErasing) return;
+            
+            const size = parseInt(eraserSize.value);
+            brushPreview.style.width = `${size}px`;
+            brushPreview.style.height = `${size}px`;
+        }
+
+        function updateBrushPreviewPosition(e) {
+            if (!isErasing) return;
+            
+            const rect = previewContainer.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
             const size = parseInt(eraserSize.value);
-            const hardness = parseInt(eraserHardness.value) / 100;
-            const opacity = parseInt(eraserOpacity.value) / 100;
-            
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.globalAlpha = opacity;
-            
-            // Create gradient for hardness effect
-            if (hardness < 1) {
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size/2);
-                gradient.addColorStop(0, `rgba(0, 0, 0, ${hardness})`);
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x - size/2, y - size/2, size, size);
-            } else {
-                ctx.beginPath();
-                ctx.arc(x, y, size/2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Enable download button after changes
-            downloadBtn.disabled = false;
+            brushPreview.style.left = `${x - size/2}px`;
+            brushPreview.style.top = `${y - size/2}px`;
         }
 
-        function eraseTouch(e) {
-            if (!isErasing) return;
-            
-            e.preventDefault();
-            const rect = imageCanvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
-            const size = parseInt(eraserSize.value);
-            const hardness = parseInt(eraserHardness.value) / 100;
-            const opacity = parseInt(eraserOpacity.value) / 100;
-            
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.globalAlpha = opacity;
-            
-            // Create gradient for hardness effect
-            if (hardness < 1) {
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size/2);
-                gradient.addColorStop(0, `rgba(0, 0, 0, ${hardness})`);
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x - size/2, y - size/2, size, size);
-            } else {
-                ctx.beginPath();
-                ctx.arc(x, y, size/2, 0, Math.PI * 2);
-                ctx.fill();
+        function showBrushPreview() {
+            if (isErasing) {
+                brushPreview.style.display = 'block';
+                updateBrushPreview();
             }
-            
-            // Enable download button after changes
-            downloadBtn.disabled = false;
         }
 
-        function stopErasing() {
-            document.removeEventListener('mousemove', erase);
-            document.removeEventListener('touchmove', eraseTouch);
-            document.removeEventListener('mouseup', stopErasing);
-            document.removeEventListener('touchend', stopErasing);
+        function hideBrushPreview() {
+            brushPreview.style.display = 'none';
+        }
+
+        function saveToHistory() {
+            // Save current canvas state to history
+            const imageData = ctx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+            canvasHistory.push(imageData);
+            
+            // Limit history size
+            if (canvasHistory.length > maxHistorySize) {
+                canvasHistory.shift();
+            }
+        }
+
+        function undoLastAction() {
+            if (canvasHistory.length > 1) {
+                // Remove current state
+                canvasHistory.pop();
+                // Restore previous state
+                const previousState = canvasHistory[canvasHistory.length - 1];
+                ctx.putImageData(previousState, 0, 0);
+                
+                if (canvasHistory.length === 1) {
+                    undoBtn.disabled = true;
+                }
+            }
         }
 
         function resetCanvas() {
             if (!originalImage) return;
             
             ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
-            ctx.drawImage(originalImage, 0, 0);
+            ctx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
+            
+            // Reset history
+            canvasHistory = [];
+            saveToHistory();
+            undoBtn.disabled = true;
             downloadBtn.disabled = true;
         }
 
@@ -897,6 +1084,10 @@
             if (!originalImage) return;
             
             ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+            
+            // Save to history
+            saveToHistory();
+            undoBtn.disabled = false;
             downloadBtn.disabled = false;
         }
 
@@ -908,7 +1099,7 @@
             // Simulate processing time
             setTimeout(() => {
                 const link = document.createElement('a');
-                link.download = 'edited-image.png';
+                link.download = 'object-removed-image.png';
                 link.href = imageCanvas.toDataURL('image/png');
                 link.click();
                 
@@ -933,10 +1124,17 @@
             previewPlaceholder.style.display = 'block';
             compressionInfo.classList.add('hidden');
             downloadBtn.disabled = true;
+            undoBtn.disabled = true;
             isErasing = false;
             eraserBtn.textContent = 'Start Erasing';
             eraserBtn.classList.remove('btn-danger');
             eraserBtn.classList.add('btn-success');
+            toolStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ready to erase objects';
+            toolStatus.className = 'tool-status status-ready';
+            hideBrushPreview();
+            
+            // Clear history
+            canvasHistory = [];
         }
 
         function formatFileSize(bytes) {
@@ -950,16 +1148,6 @@
             const nav = document.querySelector('nav');
             nav.style.display = nav.style.display === 'block' ? 'none' : 'block';
         });
-
-        // Initialize AdSense (placeholder - replace with actual AdSense code)
-        function initializeAds() {
-            // This is where you would insert your Google AdSense code
-            // For demonstration, we're just showing placeholders
-            console.log('AdSense initialized with Ad Unit IDs');
-        }
-
-        // Initialize the tool
-        initializeAds();
     </script>
 </body>
-</html>
+    </html>
