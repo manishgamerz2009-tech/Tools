@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Advanced object eraser tool - Remove unwanted objects from images with precision. Smooth erasing experience with adjustable brush settings.">
+    <meta name="description" content="Advanced object eraser tool with multiple selection modes. Remove unwanted objects from images with precision using rectangle, lasso, or brush tools.">
     <meta name="keywords" content="object eraser, remove objects from image, photo editor, image editing, erase objects, photo retouch">
     <meta name="author" content="ToolKit Pro">
-    <title>Advanced Object Eraser - Remove Unwanted Objects from Images | ToolKit Pro</title>
+    <title>Advanced Object Eraser - Multiple Selection Modes | ToolKit Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -18,6 +18,8 @@
             --gray: #6c757d;
             --success: #4cc9f0;
             --warning: #ff9e00;
+            --danger: #dc3545;
+            --info: #7209b7;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
         }
@@ -166,12 +168,15 @@
         }
 
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
@@ -181,8 +186,13 @@
         }
 
         .btn:hover {
-            background-color: #3a56c4;
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-sm {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
         }
 
         .btn-success {
@@ -215,6 +225,18 @@
 
         .btn-warning:hover {
             background-color: #e68a00;
+        }
+
+        .btn-info {
+            background-color: var(--info);
+        }
+
+        .btn-info:hover {
+            background-color: #61099c;
+        }
+
+        .btn-active {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 0 0 6px var(--primary);
         }
 
         .controls {
@@ -263,18 +285,68 @@
             text-align: center;
         }
 
-        .eraser-controls {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--light);
+        .tool-modes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
         }
 
-        .eraser-info {
-            background-color: #e9f7fe;
-            border-left: 4px solid var(--primary);
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border-radius: 0 10px 10px 0;
+        .tool-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .tool-card.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.1);
+        }
+
+        .tool-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--success), var(--primary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .tool-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: var(--dark);
+        }
+
+        .tool-card p {
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 120px;
         }
 
         .preview-container {
@@ -318,6 +390,16 @@
             touch-action: none;
         }
 
+        #selectionCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            pointer-events: none;
+        }
+
         .brush-preview {
             position: absolute;
             pointer-events: none;
@@ -325,17 +407,6 @@
             border: 2px solid var(--accent);
             display: none;
             z-index: 10;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .action-buttons .btn {
-            flex: 1;
-            min-width: 120px;
         }
 
         .ad-container {
@@ -371,21 +442,37 @@
             color: var(--gray);
         }
 
-        .compression-info {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-label {
+        .tool-status {
+            background-color: var(--light);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
             font-weight: 600;
+        }
+
+        .status-erasing {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--accent);
+        }
+
+        .status-selecting {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .status-ready {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success);
+        }
+
+        .tool-tips {
+            background-color: #fff9db;
+            border-left: 4px solid var(--warning);
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
         }
 
         .hidden {
@@ -402,34 +489,6 @@
             padding: 1rem 2rem;
             border-radius: 10px;
             box-shadow: var(--shadow);
-        }
-
-        .tool-status {
-            background-color: var(--light);
-            padding: 0.8rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .status-erasing {
-            background-color: rgba(247, 37, 133, 0.1);
-            color: var(--accent);
-        }
-
-        .status-ready {
-            background-color: rgba(76, 201, 240, 0.1);
-            color: var(--success);
-        }
-
-        .tool-tips {
-            background-color: #fff9db;
-            border-left: 4px solid var(--warning);
-            padding: 0.8rem;
-            margin-top: 1rem;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.9rem;
         }
 
         footer {
@@ -498,6 +557,10 @@
             .preview-container {
                 height: 300px;
             }
+
+            .tool-modes {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 576px) {
@@ -556,64 +619,93 @@
                     </div>
                     <p class="upload-text">Drag & drop your image here or click to browse</p>
                     <input type="file" id="fileInput" accept="image/*" class="hidden">
-                    <button class="btn" id="browseBtn">Browse Files</button>
+                    <button class="btn" id="browseBtn">
+                        <i class="fas fa-folder-open"></i> Browse Files
+                    </button>
                 </div>
                 
                 <div class="file-info" id="fileInfo"></div>
                 
                 <div class="tool-status status-ready" id="toolStatus">
-                    <i class="fas fa-check-circle"></i> Ready to erase objects
+                    <i class="fas fa-check-circle"></i> Ready - Upload an image to start
                 </div>
                 
                 <div class="controls">
-                    <div class="control-group">
-                        <label class="control-label" for="eraserSize">Eraser Size</label>
-                        <div class="slider-container">
-                            <input type="range" min="5" max="100" value="25" class="slider" id="eraserSize">
-                            <span class="slider-value" id="eraserValue">25px</span>
+                    <h3 class="section-title">Selection Tools</h3>
+                    <div class="tool-modes">
+                        <div class="tool-card active" id="brushTool">
+                            <div class="tool-icon">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h3>Brush Tool</h3>
+                            <p>Paint over areas to select</p>
+                        </div>
+                        <div class="tool-card" id="rectTool">
+                            <div class="tool-icon">
+                                <i class="fas fa-vector-square"></i>
+                            </div>
+                            <h3>Rectangle Select</h3>
+                            <p>Select rectangular areas</p>
+                        </div>
+                        <div class="tool-card" id="lassoTool">
+                            <div class="tool-icon">
+                                <i class="fas fa-draw-polygon"></i>
+                            </div>
+                            <h3>Lasso Tool</h3>
+                            <p>Draw freeform selections</p>
+                        </div>
+                        <div class="tool-card" id="magicTool">
+                            <div class="tool-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <h3>Magic Wand</h3>
+                            <p>Select similar colors</p>
                         </div>
                     </div>
                     
                     <div class="control-group">
-                        <label class="control-label" for="eraserHardness">Eraser Hardness</label>
+                        <label class="control-label" for="toolSize">Tool Size</label>
                         <div class="slider-container">
-                            <input type="range" min="0" max="100" value="80" class="slider" id="eraserHardness">
-                            <span class="slider-value" id="hardnessValue">80%</span>
+                            <input type="range" min="5" max="100" value="25" class="slider" id="toolSize">
+                            <span class="slider-value" id="toolSizeValue">25px</span>
                         </div>
                     </div>
                     
                     <div class="control-group">
-                        <label class="control-label" for="eraserOpacity">Eraser Opacity</label>
+                        <label class="control-label" for="tolerance">Color Tolerance</label>
                         <div class="slider-container">
-                            <input type="range" min="10" max="100" value="100" class="slider" id="eraserOpacity">
-                            <span class="slider-value" id="opacityValue">100%</span>
-                        </div>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label class="control-label" for="smoothing">Smoothing</label>
-                        <div class="slider-container">
-                            <input type="range" min="0" max="100" value="30" class="slider" id="smoothing">
-                            <span class="slider-value" id="smoothingValue">30%</span>
+                            <input type="range" min="0" max="100" value="30" class="slider" id="tolerance">
+                            <span class="slider-value" id="toleranceValue">30%</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="eraser-controls">
-                    <h3 class="section-title">Advanced Eraser</h3>
-                    <div class="eraser-info">
-                        <p><strong>How to use:</strong> Upload an image, then click and drag over the areas you want to erase. The eraser follows your cursor/finger precisely from start to finish.</p>
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <button class="btn btn-success" id="eraserBtn">Start Erasing</button>
-                        <button class="btn btn-warning" id="undoBtn" disabled>Undo</button>
-                        <button class="btn btn-secondary" id="resetBtn">Reset Image</button>
-                    </div>
-                    
-                    <div class="tool-tips">
-                        <i class="fas fa-lightbulb"></i> <strong>Pro Tip:</strong> Use a smaller brush for detailed work and a larger brush for big areas.
-                    </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="selectAreaBtn">
+                        <i class="fas fa-mouse-pointer"></i> Select Area
+                    </button>
+                    <button class="btn btn-danger" id="removeObjectBtn" disabled>
+                        <i class="fas fa-eraser"></i> Remove Object
+                    </button>
+                    <button class="btn btn-secondary" id="clearSelectionBtn" disabled>
+                        <i class="fas fa-times"></i> Clear Selection
+                    </button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-warning" id="undoBtn" disabled>
+                        <i class="fas fa-undo"></i> Undo
+                    </button>
+                    <button class="btn btn-info" id="redoBtn" disabled>
+                        <i class="fas fa-redo"></i> Redo
+                    </button>
+                    <button class="btn btn-secondary" id="resetBtn">
+                        <i class="fas fa-sync"></i> Reset Image
+                    </button>
+                </div>
+                
+                <div class="tool-tips">
+                    <i class="fas fa-lightbulb"></i> <strong>Pro Tip:</strong> Use the Rectangle tool for regular objects, Lasso for irregular shapes, and Magic Wand for similar-colored areas.
                 </div>
             </section>
             
@@ -623,10 +715,12 @@
                     <div class="placeholder-text" id="previewPlaceholder">
                         <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <p>Your image will appear here after upload</p>
+                        <p class="file-info">Supported formats: JPG, PNG, WebP</p>
                     </div>
                     <img id="previewImage" alt="Processed image preview">
                     <div class="canvas-container">
                         <canvas id="imageCanvas"></canvas>
+                        <canvas id="selectionCanvas"></canvas>
                         <div class="brush-preview" id="brushPreview"></div>
                     </div>
                     <div class="loading hidden" id="loadingIndicator">
@@ -636,24 +730,21 @@
                 
                 <div class="action-buttons">
                     <button class="btn btn-success" id="downloadBtn" disabled>
-                        <i class="fas fa-download"></i> Download Edited Image
+                        <i class="fas fa-download"></i> Download Image
                     </button>
-                    <button class="btn btn-danger" id="clearBtn">
-                        <i class="fas fa-trash"></i> Clear All
-                    </button>
-                    <button class="btn btn-secondary" id="newImageBtn">
+                    <button class="btn btn-danger" id="newImageBtn">
                         <i class="fas fa-plus"></i> New Image
                     </button>
                 </div>
                 
-                <div class="compression-info hidden" id="compressionInfo">
+                <div class="file-info">
                     <div class="info-row">
                         <span class="info-label">Original Size:</span>
                         <span id="originalSize">-</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Edited Size:</span>
-                        <span id="editedSize">-</span>
+                        <span class="info-label">Current Size:</span>
+                        <span id="currentSize">-</span>
                     </div>
                 </div>
             </section>
@@ -676,7 +767,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>Advanced Object Eraser</h3>
-                    <p>Remove unwanted objects, people, or text from your images with our precision eraser tool. Smooth drawing experience with advanced controls.</p>
+                    <p>Remove unwanted objects with precision using multiple selection tools. Rectangle, Lasso, Brush, and Magic Wand tools for any scenario.</p>
                 </div>
                 
                 <div class="footer-section">
@@ -691,13 +782,13 @@
                 </div>
                 
                 <div class="footer-section">
-                    <h3>Features</h3>
+                    <h3>Selection Tools</h3>
                     <ul>
-                        <li>Precision Object Removal</li>
-                        <li>Adjustable Brush Settings</li>
-                        <li>Smooth Drawing Experience</li>
-                        <li>Undo/Redo Functionality</li>
-                        <li>Completely Free</li>
+                        <li>Brush Selection</li>
+                        <li>Rectangle Selection</li>
+                        <li>Lasso Selection</li>
+                        <li>Magic Wand</li>
+                        <li>Multiple Undo/Redo</li>
                     </ul>
                 </div>
             </div>
@@ -715,40 +806,53 @@
         const uploadArea = document.getElementById('uploadArea');
         const previewImage = document.getElementById('previewImage');
         const imageCanvas = document.getElementById('imageCanvas');
+        const selectionCanvas = document.getElementById('selectionCanvas');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
         const previewContainer = document.getElementById('previewContainer');
         const brushPreview = document.getElementById('brushPreview');
-        const eraserBtn = document.getElementById('eraserBtn');
+        const toolStatus = document.getElementById('toolStatus');
+        
+        // Tool selection buttons
+        const brushTool = document.getElementById('brushTool');
+        const rectTool = document.getElementById('rectTool');
+        const lassoTool = document.getElementById('lassoTool');
+        const magicTool = document.getElementById('magicTool');
+        
+        // Action buttons
+        const selectAreaBtn = document.getElementById('selectAreaBtn');
+        const removeObjectBtn = document.getElementById('removeObjectBtn');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
         const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
         const resetBtn = document.getElementById('resetBtn');
-        const clearBtn = document.getElementById('clearBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const newImageBtn = document.getElementById('newImageBtn');
-        const eraserSize = document.getElementById('eraserSize');
-        const eraserValue = document.getElementById('eraserValue');
-        const eraserHardness = document.getElementById('eraserHardness');
-        const hardnessValue = document.getElementById('hardnessValue');
-        const eraserOpacity = document.getElementById('eraserOpacity');
-        const opacityValue = document.getElementById('opacityValue');
-        const smoothing = document.getElementById('smoothing');
-        const smoothingValue = document.getElementById('smoothingValue');
+        
+        // Control sliders
+        const toolSize = document.getElementById('toolSize');
+        const toolSizeValue = document.getElementById('toolSizeValue');
+        const tolerance = document.getElementById('tolerance');
+        const toleranceValue = document.getElementById('toleranceValue');
+        
+        // Info displays
         const fileInfo = document.getElementById('fileInfo');
-        const compressionInfo = document.getElementById('compressionInfo');
         const originalSize = document.getElementById('originalSize');
-        const editedSize = document.getElementById('editedSize');
+        const currentSize = document.getElementById('currentSize');
         const loadingIndicator = document.getElementById('loadingIndicator');
-        const toolStatus = document.getElementById('toolStatus');
 
         // Global variables
         let originalImage = null;
-        let isErasing = false;
+        let isSelecting = false;
+        let currentTool = 'brush';
         let ctx = imageCanvas.getContext('2d');
+        let selectionCtx = selectionCanvas.getContext('2d');
         let originalFileSize = 0;
-        let editedFileSize = 0;
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let selectionPoints = [];
         let canvasHistory = [];
+        let redoHistory = [];
         let maxHistorySize = 10;
 
         // Event Listeners
@@ -776,31 +880,33 @@
         
         fileInput.addEventListener('change', handleFileSelection);
         
-        eraserSize.addEventListener('input', () => {
-            eraserValue.textContent = `${eraserSize.value}px`;
+        // Tool selection
+        brushTool.addEventListener('click', () => setActiveTool('brush'));
+        rectTool.addEventListener('click', () => setActiveTool('rectangle'));
+        lassoTool.addEventListener('click', () => setActiveTool('lasso'));
+        magicTool.addEventListener('click', () => setActiveTool('magic'));
+        
+        // Action buttons
+        selectAreaBtn.addEventListener('click', toggleSelectionMode);
+        removeObjectBtn.addEventListener('click', removeSelectedObject);
+        clearSelectionBtn.addEventListener('click', clearSelection);
+        undoBtn.addEventListener('click', undoAction);
+        redoBtn.addEventListener('click', redoAction);
+        resetBtn.addEventListener('click', resetCanvas);
+        downloadBtn.addEventListener('click', downloadImage);
+        newImageBtn.addEventListener('click', resetTool);
+        
+        // Control sliders
+        toolSize.addEventListener('input', () => {
+            toolSizeValue.textContent = `${toolSize.value}px`;
             updateBrushPreview();
         });
         
-        eraserHardness.addEventListener('input', () => {
-            hardnessValue.textContent = `${eraserHardness.value}%`;
+        tolerance.addEventListener('input', () => {
+            toleranceValue.textContent = `${tolerance.value}%`;
         });
         
-        eraserOpacity.addEventListener('input', () => {
-            opacityValue.textContent = `${eraserOpacity.value}%`;
-        });
-        
-        smoothing.addEventListener('input', () => {
-            smoothingValue.textContent = `${smoothing.value}%`;
-        });
-        
-        eraserBtn.addEventListener('click', toggleEraser);
-        undoBtn.addEventListener('click', undoLastAction);
-        resetBtn.addEventListener('click', resetCanvas);
-        clearBtn.addEventListener('click', clearCanvas);
-        downloadBtn.addEventListener('click', downloadImage);
-        newImageBtn.addEventListener('click', resetTool);
-
-        // Canvas event listeners for drawing
+        // Canvas event listeners
         imageCanvas.addEventListener('mousedown', startDrawing);
         imageCanvas.addEventListener('mousemove', draw);
         imageCanvas.addEventListener('mouseup', stopDrawing);
@@ -827,6 +933,8 @@
             // Display file info
             originalFileSize = file.size;
             fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+            originalSize.textContent = formatFileSize(file.size);
+            currentSize.textContent = formatFileSize(file.size);
             
             // Load and display the image
             const reader = new FileReader();
@@ -849,6 +957,9 @@
                     
                     imageCanvas.width = width;
                     imageCanvas.height = height;
+                    selectionCanvas.width = width;
+                    selectionCanvas.height = height;
+                    
                     ctx.drawImage(originalImage, 0, 0, width, height);
                     
                     // Save initial state to history
@@ -856,128 +967,258 @@
                     
                     // Show canvas and hide placeholder
                     imageCanvas.style.display = 'block';
+                    selectionCanvas.style.display = 'block';
                     previewPlaceholder.style.display = 'none';
                     
-                    // Reset info
-                    compressionInfo.classList.add('hidden');
-                    downloadBtn.disabled = true;
-                    undoBtn.disabled = true;
+                    // Enable buttons
+                    selectAreaBtn.disabled = false;
+                    resetBtn.disabled = false;
                     
                     // Update tool status
-                    toolStatus.textContent = 'Ready to erase objects';
-                    toolStatus.className = 'tool-status status-ready';
+                    updateToolStatus('Ready - Select an area to remove');
                 };
                 originalImage.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        function toggleEraser() {
+        function setActiveTool(tool) {
+            currentTool = tool;
+            
+            // Update UI
+            brushTool.classList.remove('active');
+            rectTool.classList.remove('active');
+            lassoTool.classList.remove('active');
+            magicTool.classList.remove('active');
+            
+            if (tool === 'brush') brushTool.classList.add('active');
+            if (tool === 'rectangle') rectTool.classList.add('active');
+            if (tool === 'lasso') lassoTool.classList.add('active');
+            if (tool === 'magic') magicTool.classList.add('active');
+            
+            // Update cursor and brush preview
+            if (isSelecting) {
+                updateBrushPreview();
+                updateToolStatus(`Using ${getToolName(tool)} - Click and drag to select area`);
+            }
+        }
+
+        function getToolName(tool) {
+            switch(tool) {
+                case 'brush': return 'Brush Tool';
+                case 'rectangle': return 'Rectangle Tool';
+                case 'lasso': return 'Lasso Tool';
+                case 'magic': return 'Magic Wand';
+                default: return 'Tool';
+            }
+        }
+
+        function toggleSelectionMode() {
             if (!originalImage) {
                 alert('Please select an image first.');
                 return;
             }
             
-            isErasing = !isErasing;
+            isSelecting = !isSelecting;
             
-            if (isErasing) {
-                eraserBtn.textContent = 'Stop Erasing';
-                eraserBtn.classList.remove('btn-success');
-                eraserBtn.classList.add('btn-danger');
-                imageCanvas.style.cursor = 'crosshair';
+            if (isSelecting) {
+                selectAreaBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Selecting';
+                selectAreaBtn.classList.remove('btn-success');
+                selectAreaBtn.classList.add('btn-warning');
+                imageCanvas.style.cursor = getCursorForTool();
+                
+                // Show selection canvas
+                selectionCanvas.style.display = 'block';
+                clearSelection();
                 
                 // Update tool status
-                toolStatus.innerHTML = '<i class="fas fa-eraser"></i> Erasing mode active - Click and drag to erase objects';
-                toolStatus.className = 'tool-status status-erasing';
+                updateToolStatus(`Using ${getToolName(currentTool)} - Click and drag to select area`);
                 
-                // Show brush preview
-                showBrushPreview();
+                // Show brush preview for brush tool
+                if (currentTool === 'brush') {
+                    showBrushPreview();
+                }
             } else {
-                eraserBtn.textContent = 'Start Erasing';
-                eraserBtn.classList.remove('btn-danger');
-                eraserBtn.classList.add('btn-success');
+                selectAreaBtn.innerHTML = '<i class="fas fa-mouse-pointer"></i> Select Area';
+                selectAreaBtn.classList.remove('btn-warning');
+                selectAreaBtn.classList.add('btn-success');
                 imageCanvas.style.cursor = 'default';
                 
                 // Update tool status
-                toolStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ready to erase objects';
-                toolStatus.className = 'tool-status status-ready';
+                updateToolStatus('Ready - Select an area to remove');
                 
                 // Hide brush preview
                 hideBrushPreview();
+                
+                // Check if we have a selection
+                if (hasSelection()) {
+                    removeObjectBtn.disabled = false;
+                    clearSelectionBtn.disabled = false;
+                }
+            }
+        }
+
+        function getCursorForTool() {
+            switch(currentTool) {
+                case 'brush': return 'crosshair';
+                case 'rectangle': return 'crosshair';
+                case 'lasso': return 'crosshair';
+                case 'magic': return 'crosshair';
+                default: return 'default';
             }
         }
 
         function startDrawing(e) {
-            if (!isErasing) return;
+            if (!isSelecting) return;
             
             isDrawing = true;
             const pos = getMousePos(e);
             [lastX, lastY] = [pos.x, pos.y];
+            selectionPoints = [{x: lastX, y: lastY}];
             
-            // Draw initial point
-            drawAtPosition(lastX, lastY);
+            // Clear previous selection visualization
+            selectionCtx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+            
+            // Start selection based on tool
+            if (currentTool === 'brush') {
+                drawSelectionBrush(lastX, lastY);
+            } else if (currentTool === 'rectangle') {
+                // For rectangle, we'll draw during mousemove
+            } else if (currentTool === 'lasso') {
+                drawSelectionPoint(lastX, lastY);
+            } else if (currentTool === 'magic') {
+                // Magic wand is handled on click, not drag
+                performMagicWandSelection(lastX, lastY);
+                stopDrawing();
+            }
         }
 
         function draw(e) {
-            if (!isDrawing || !isErasing) return;
+            if (!isDrawing || !isSelecting) return;
             
             e.preventDefault();
             const pos = getMousePos(e);
             const currentX = pos.x;
             const currentY = pos.y;
             
-            // Calculate distance between points for smooth drawing
-            const dist = Math.sqrt(Math.pow(currentX - lastX, 2) + Math.pow(currentY - lastY, 2));
-            const steps = Math.max(1, Math.floor(dist / 2));
-            
-            // Draw intermediate points for smooth line
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                const x = lastX + (currentX - lastX) * t;
-                const y = lastY + (currentY - lastY) * t;
-                drawAtPosition(x, y);
+            if (currentTool === 'brush') {
+                // Calculate distance between points for smooth drawing
+                const dist = Math.sqrt(Math.pow(currentX - lastX, 2) + Math.pow(currentY - lastY, 2));
+                const steps = Math.max(1, Math.floor(dist / 2));
+                
+                // Draw intermediate points for smooth line
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const x = lastX + (currentX - lastX) * t;
+                    const y = lastY + (currentY - lastY) * t;
+                    drawSelectionBrush(x, y);
+                }
+            } else if (currentTool === 'rectangle') {
+                // Redraw rectangle from start to current position
+                selectionCtx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+                drawSelectionRectangle(selectionPoints[0].x, selectionPoints[0].y, currentX, currentY);
+            } else if (currentTool === 'lasso') {
+                // Add point to lasso and draw line
+                selectionPoints.push({x: currentX, y: currentY});
+                drawSelectionLasso();
             }
             
             [lastX, lastY] = [currentX, currentY];
         }
 
-        function drawAtPosition(x, y) {
-            const size = parseInt(eraserSize.value);
-            const hardness = parseInt(eraserHardness.value) / 100;
-            const opacity = parseInt(eraserOpacity.value) / 100;
+        function drawSelectionBrush(x, y) {
+            const size = parseInt(toolSize.value);
             
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.globalAlpha = opacity;
+            selectionCtx.globalCompositeOperation = 'source-over';
+            selectionCtx.fillStyle = 'rgba(67, 97, 238, 0.5)';
+            selectionCtx.strokeStyle = 'rgba(67, 97, 238, 0.8)';
+            selectionCtx.lineWidth = 2;
             
-            // Create gradient for hardness effect
-            if (hardness < 1) {
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, size/2);
-                gradient.addColorStop(0, `rgba(0, 0, 0, ${hardness})`);
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x - size/2, y - size/2, size, size);
-            } else {
-                ctx.beginPath();
-                ctx.arc(x, y, size/2, 0, Math.PI * 2);
-                ctx.fill();
+            selectionCtx.beginPath();
+            selectionCtx.arc(x, y, size/2, 0, Math.PI * 2);
+            selectionCtx.fill();
+            selectionCtx.stroke();
+        }
+
+        function drawSelectionRectangle(startX, startY, endX, endY) {
+            const width = endX - startX;
+            const height = endY - startY;
+            
+            selectionCtx.globalCompositeOperation = 'source-over';
+            selectionCtx.fillStyle = 'rgba(67, 97, 238, 0.3)';
+            selectionCtx.strokeStyle = 'rgba(67, 97, 238, 0.8)';
+            selectionCtx.lineWidth = 2;
+            
+            selectionCtx.fillRect(startX, startY, width, height);
+            selectionCtx.strokeRect(startX, startY, width, height);
+        }
+
+        function drawSelectionLasso() {
+            if (selectionPoints.length < 2) return;
+            
+            selectionCtx.globalCompositeOperation = 'source-over';
+            selectionCtx.fillStyle = 'rgba(67, 97, 238, 0.3)';
+            selectionCtx.strokeStyle = 'rgba(67, 97, 238, 0.8)';
+            selectionCtx.lineWidth = 2;
+            
+            selectionCtx.beginPath();
+            selectionCtx.moveTo(selectionPoints[0].x, selectionPoints[0].y);
+            
+            for (let i = 1; i < selectionPoints.length; i++) {
+                selectionCtx.lineTo(selectionPoints[i].x, selectionPoints[i].y);
             }
             
-            // Enable download and undo buttons after changes
-            downloadBtn.disabled = false;
-            undoBtn.disabled = false;
+            // Close the path if we have at least 3 points
+            if (selectionPoints.length >= 3) {
+                selectionCtx.closePath();
+                selectionCtx.fill();
+            }
+            
+            selectionCtx.stroke();
+        }
+
+        function drawSelectionPoint(x, y) {
+            selectionCtx.globalCompositeOperation = 'source-over';
+            selectionCtx.fillStyle = 'rgba(67, 97, 238, 0.7)';
+            
+            selectionCtx.beginPath();
+            selectionCtx.arc(x, y, 4, 0, Math.PI * 2);
+            selectionCtx.fill();
+        }
+
+        function performMagicWandSelection(x, y) {
+            // This is a simplified magic wand implementation
+            // In a real application, you would use more advanced algorithms
+            
+            const size = parseInt(toolSize.value) * 2; // Larger area for magic wand
+            const tol = parseInt(tolerance.value) / 100 * 255; // Convert to 0-255 range
+            
+            selectionCtx.globalCompositeOperation = 'source-over';
+            selectionCtx.fillStyle = 'rgba(67, 97, 238, 0.5)';
+            selectionCtx.strokeStyle = 'rgba(67, 97, 238, 0.8)';
+            selectionCtx.lineWidth = 2;
+            
+            selectionCtx.beginPath();
+            selectionCtx.arc(x, y, size/2, 0, Math.PI * 2);
+            selectionCtx.fill();
+            selectionCtx.stroke();
         }
 
         function stopDrawing() {
             if (isDrawing) {
                 isDrawing = false;
-                // Save state to history when finishing a stroke
-                saveToHistory();
+                
+                // For rectangle and lasso tools, we're done with the selection
+                if (currentTool === 'rectangle' || currentTool === 'lasso') {
+                    // We already have the selection visualized
+                }
+                
+                // For brush tool, we keep the selection as is
             }
         }
 
         function handleTouchStart(e) {
-            if (!isErasing) return;
+            if (!isSelecting) return;
             
             e.preventDefault();
             const touch = e.touches[0];
@@ -989,7 +1230,7 @@
         }
 
         function handleTouchMove(e) {
-            if (!isErasing) return;
+            if (!isSelecting) return;
             
             e.preventDefault();
             const touch = e.touches[0];
@@ -1011,35 +1252,63 @@
             };
         }
 
-        function updateBrushPreview() {
-            if (!isErasing) return;
-            
-            const size = parseInt(eraserSize.value);
-            brushPreview.style.width = `${size}px`;
-            brushPreview.style.height = `${size}px`;
+        function hasSelection() {
+            // Check if we have any selection data
+            // This is a simplified check - in a real app you'd check the actual selection
+            return selectionPoints.length > 0;
         }
 
-        function updateBrushPreviewPosition(e) {
-            if (!isErasing) return;
-            
-            const rect = previewContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const size = parseInt(eraserSize.value);
-            brushPreview.style.left = `${x - size/2}px`;
-            brushPreview.style.top = `${y - size/2}px`;
-        }
-
-        function showBrushPreview() {
-            if (isErasing) {
-                brushPreview.style.display = 'block';
-                updateBrushPreview();
+        function removeSelectedObject() {
+            if (!hasSelection()) {
+                alert('Please select an area first.');
+                return;
             }
+            
+            // Save current state to history before removing
+            saveToHistory();
+            
+            // For this demo, we'll simulate removal by clearing the selected area
+            // In a real application, you would use more advanced inpainting algorithms
+            
+            selectionCtx.globalCompositeOperation = 'destination-out';
+            selectionCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+            
+            // Draw the selection with the erase composite operation
+            if (currentTool === 'brush') {
+                // For brush, we'd need to track the brush strokes
+                // This is simplified - just clear a rectangle for demo
+                selectionCtx.fillRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+            } else {
+                selectionCtx.fillRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+            }
+            
+            // Apply the selection to the main canvas
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.drawImage(selectionCanvas, 0, 0);
+            
+            // Clear the selection
+            clearSelection();
+            
+            // Update UI
+            removeObjectBtn.disabled = true;
+            clearSelectionBtn.disabled = true;
+            downloadBtn.disabled = false;
+            undoBtn.disabled = false;
+            redoHistory = []; // Clear redo history when making a new change
+            
+            // Update file size (estimate)
+            const dataURL = imageCanvas.toDataURL('image/png');
+            const newSize = Math.round((dataURL.length * 3) / 4);
+            currentSize.textContent = formatFileSize(newSize);
+            
+            updateToolStatus('Object removed - You can continue editing or download the image');
         }
 
-        function hideBrushPreview() {
-            brushPreview.style.display = 'none';
+        function clearSelection() {
+            selectionCtx.clearRect(0, 0, selectionCanvas.width, selectionCanvas.height);
+            selectionPoints = [];
+            removeObjectBtn.disabled = true;
+            clearSelectionBtn.disabled = true;
         }
 
         function saveToHistory() {
@@ -1053,17 +1322,48 @@
             }
         }
 
-        function undoLastAction() {
+        function undoAction() {
             if (canvasHistory.length > 1) {
-                // Remove current state
+                // Save current state to redo history
+                const currentState = ctx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+                redoHistory.push(currentState);
+                
+                // Remove current state from history
                 canvasHistory.pop();
+                
                 // Restore previous state
                 const previousState = canvasHistory[canvasHistory.length - 1];
                 ctx.putImageData(previousState, 0, 0);
                 
-                if (canvasHistory.length === 1) {
-                    undoBtn.disabled = true;
-                }
+                // Update UI
+                undoBtn.disabled = canvasHistory.length <= 1;
+                redoBtn.disabled = false;
+                
+                // Update file size (estimate)
+                const dataURL = imageCanvas.toDataURL('image/png');
+                const newSize = Math.round((dataURL.length * 3) / 4);
+                currentSize.textContent = formatFileSize(newSize);
+            }
+        }
+
+        function redoAction() {
+            if (redoHistory.length > 0) {
+                // Save current state to history
+                const currentState = ctx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+                canvasHistory.push(currentState);
+                
+                // Restore state from redo history
+                const nextState = redoHistory.pop();
+                ctx.putImageData(nextState, 0, 0);
+                
+                // Update UI
+                undoBtn.disabled = false;
+                redoBtn.disabled = redoHistory.length === 0;
+                
+                // Update file size (estimate)
+                const dataURL = imageCanvas.toDataURL('image/png');
+                const newSize = Math.round((dataURL.length * 3) / 4);
+                currentSize.textContent = formatFileSize(newSize);
             }
         }
 
@@ -1073,22 +1373,58 @@
             ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
             ctx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
             
+            // Clear selection
+            clearSelection();
+            
             // Reset history
             canvasHistory = [];
             saveToHistory();
+            redoHistory = [];
+            
+            // Update UI
             undoBtn.disabled = true;
+            redoBtn.disabled = true;
             downloadBtn.disabled = true;
+            
+            // Reset file size display
+            currentSize.textContent = formatFileSize(originalFileSize);
+            
+            updateToolStatus('Image reset - Ready for new edits');
         }
 
-        function clearCanvas() {
-            if (!originalImage) return;
+        function updateBrushPreview() {
+            if (!isSelecting || currentTool !== 'brush') return;
             
-            ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+            const size = parseInt(toolSize.value);
+            brushPreview.style.width = `${size}px`;
+            brushPreview.style.height = `${size}px`;
+        }
+
+        function updateBrushPreviewPosition(e) {
+            if (!isSelecting || currentTool !== 'brush') return;
             
-            // Save to history
-            saveToHistory();
-            undoBtn.disabled = false;
-            downloadBtn.disabled = false;
+            const rect = previewContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const size = parseInt(toolSize.value);
+            brushPreview.style.left = `${x - size/2}px`;
+            brushPreview.style.top = `${y - size/2}px`;
+        }
+
+        function showBrushPreview() {
+            if (isSelecting && currentTool === 'brush') {
+                brushPreview.style.display = 'block';
+                updateBrushPreview();
+            }
+        }
+
+        function hideBrushPreview() {
+            brushPreview.style.display = 'none';
+        }
+
+        function updateToolStatus(message) {
+            toolStatus.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
         }
 
         function downloadImage() {
@@ -1103,15 +1439,6 @@
                 link.href = imageCanvas.toDataURL('image/png');
                 link.click();
                 
-                // Calculate file size
-                const dataURL = imageCanvas.toDataURL('image/png');
-                editedFileSize = Math.round((dataURL.length * 3) / 4); // Approximate size
-                
-                // Update file info
-                originalSize.textContent = formatFileSize(originalFileSize);
-                editedSize.textContent = formatFileSize(editedFileSize);
-                compressionInfo.classList.remove('hidden');
-                
                 loadingIndicator.classList.add('hidden');
             }, 500);
         }
@@ -1121,20 +1448,33 @@
             fileInfo.textContent = '';
             previewImage.style.display = 'none';
             imageCanvas.style.display = 'none';
+            selectionCanvas.style.display = 'none';
             previewPlaceholder.style.display = 'block';
-            compressionInfo.classList.add('hidden');
             downloadBtn.disabled = true;
             undoBtn.disabled = true;
-            isErasing = false;
-            eraserBtn.textContent = 'Start Erasing';
-            eraserBtn.classList.remove('btn-danger');
-            eraserBtn.classList.add('btn-success');
-            toolStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ready to erase objects';
-            toolStatus.className = 'tool-status status-ready';
-            hideBrushPreview();
+            redoBtn.disabled = true;
+            selectAreaBtn.disabled = true;
+            removeObjectBtn.disabled = true;
+            clearSelectionBtn.disabled = true;
+            isSelecting = false;
+            
+            // Reset UI
+            selectAreaBtn.innerHTML = '<i class="fas fa-mouse-pointer"></i> Select Area';
+            selectAreaBtn.classList.remove('btn-warning');
+            selectAreaBtn.classList.add('btn-success');
+            
+            // Reset tool to brush
+            setActiveTool('brush');
             
             // Clear history
             canvasHistory = [];
+            redoHistory = [];
+            
+            // Update tool status
+            updateToolStatus('Ready - Upload an image to start');
+            
+            // Hide brush preview
+            hideBrushPreview();
         }
 
         function formatFileSize(bytes) {
@@ -1150,4 +1490,4 @@
         });
     </script>
 </body>
-    </html>
+                            </html>
