@@ -391,13 +391,25 @@
 
     <main class="container">
         <!-- Ad Space 1 -->
-        <div class="ad-container">
-            <div class="ad-label">Advertisement</div>
-            <div class="ad-placeholder" id="adTop">
-                <!-- Google AdSense Ad Unit will be inserted here -->
-                AdSense Ad Unit (Top)
+       <section id="ad-top">
+            <div class="ad-container">
+                <div class="ad-label">Advertisement</div>
+                <div class="ad-placeholder" id="adTop">
+                    <!-- Google AdSense Ad Unit will be inserted here -->
+                    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_AD_UNIT_ID" crossorigin="anonymous"></script>
+                    <!-- Ad Unit -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-YOUR_AD_UNIT_ID"
+                         data-ad-slot="1234567890"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
             </div>
-        </div>
+        </section>
 
         <div class="tool-container">
             <section class="upload-section">
